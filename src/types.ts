@@ -7,8 +7,10 @@ export interface MyQuery extends DataQuery {
 }
 
 export const DEFAULT_QUERY: Partial<MyQuery> = {
-  constant: 6.5,
+  constant: 10.5,
+  queryText: "Hello World"
 };
+
 
 /**
  * These are options configured for each DataSource instance

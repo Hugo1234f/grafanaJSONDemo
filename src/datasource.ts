@@ -1,10 +1,15 @@
 import { DataSourceInstanceSettings, CoreApp, DataQueryRequest, MutableDataFrame, FieldType, DataQueryResponse, DataSourceApi } from '@grafana/data';
 import defaults from 'lodash/defaults';
 import { MyQuery, MyDataSourceOptions, DEFAULT_QUERY } from './types';
+import API from './api'
 
 export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
+  api: API;
+  
   constructor(instanceSettings: DataSourceInstanceSettings<MyDataSourceOptions>) {
     super(instanceSettings);
+
+    this.api = new API('../data/data.json');
   }
 
 
@@ -12,6 +17,7 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
     const { range } = options;
     const from = range!.from.valueOf();
     const to = range!.to.valueOf();
+    const JSONData = this.api.loadFile();
 
     const duration = to - from;
     const step = duration / 1000;
@@ -22,13 +28,27 @@ export class DataSource extends DataSourceApi<MyQuery, MyDataSourceOptions> {
       const frame = new MutableDataFrame({
         refId: query.refId,
         fields: [
-          {name: 'time', type: FieldType.time},
-          {name: 'value', type: FieldType.number},
-        ],
-      });
+          //{name: 'tagname', type: FieldType.string},
+          //{name: 'dataType', type: FieldType.number},
+          //{name: 'timeStartRequested', type: FieldType.string},
+          //{name: 'timeEndRequested', type: FieldType.string},
+          //{name: 'timeStartActual', type: FieldType.string},
+          //{name: 'timeEndActual', type: FieldType.string},
+          //{name: 'valueCount', type: FieldType.number},
 
-      for(let t = 0; t < duration; t += step) {
-        frame.add({time: from + t, value: Math.sin((2 * Math.PI * t) / duration)});
+          {name: 'timeStamp', type: FieldType.string},
+          {name: 'status', type: FieldType.number},
+          {name: 'value', type: FieldType.number}
+        ],
+        
+      });
+      
+
+      for(let t = 0; t < JSONData.valueCount; t += 1) {
+        const time = JSONData.values[t].timeStamp;
+        const status = JSONData.values[t].status;
+        const value = JSONData.values[t].value;
+        frame.add({time, status, value});
       }
 
       return frame;
